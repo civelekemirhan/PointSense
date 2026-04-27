@@ -17,6 +17,7 @@
 	<properties>
 		<java.version>24</java.version>
 		<onnxruntime.version>1.17.0</onnxruntime.version>
+		<springdoc.version>2.8.9</springdoc.version>
 	</properties>
 
 	<dependencies>
@@ -75,6 +76,13 @@
 			<groupId>com.microsoft.onnxruntime</groupId>
 			<artifactId>onnxruntime</artifactId>
 			<version>${onnxruntime.version}</version>
+		</dependency>
+
+		<!-- OpenAPI / Swagger UI -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>${springdoc.version}</version>
 		</dependency>
 
 		<!-- Test -->
