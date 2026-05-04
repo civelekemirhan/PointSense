@@ -33,11 +33,11 @@ public class MapController {
         ));
     }
 
-    /** GET /maps — Kayıtlı harita isimlerini listeler */
+    /** GET /maps — Kayıtlı haritaları listeler */
     @GetMapping
-    @Operation(summary = "Haritaları listele", description = "Sistemde kayıtlı tüm harita isimlerini döner")
-    public ResponseEntity<Collection<String>> list() {
-        return ResponseEntity.ok(mapService.listNames());
+    @Operation(summary = "Haritaları listele", description = "Sistemde kayıtlı tüm haritaları döner")
+    public ResponseEntity<Collection<GameMapDTO>> list() {
+        return ResponseEntity.ok(mapService.listMaps());
     }
 
     /** GET /maps/{name} — Belirtilen haritayı döner */

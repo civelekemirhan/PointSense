@@ -52,6 +52,27 @@ public class MapService {
                    .collect(Collectors.toList());
     }
 
+    public List<GameMapDTO> listMaps() {
+        return repo.findAll()
+                   .stream()
+                   .map(this::toDTO)
+                   .collect(Collectors.toList());
+    }
+
+    public void updateStartPosition(String mapName, PositionDTO startPos) {
+        if (mapName == null || mapName.isBlank() || startPos == null) return;
+        findByName(mapName).ifPresent(existing -> {
+            GameMapDTO updated = new GameMapDTO(
+                    existing.mapName(),
+                    existing.gridSize(),
+                    startPos,
+                    existing.targetPos(),
+                    existing.obstacles()
+            );
+            save(updated);
+        });
+    }
+
     public boolean delete(String name) {
         if (!repo.existsById(name)) return false;
         repo.deleteById(name);

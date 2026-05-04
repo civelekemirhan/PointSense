@@ -1,7 +1,9 @@
 package com.wexec.pointsense.websocket;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wexec.pointsense.dto.AgentTickDTO;
+import com.wexec.pointsense.dto.PositionDTO;
 import com.wexec.pointsense.dto.SimulationResponseDTO;
 import com.wexec.pointsense.service.SimulationService;
 import org.slf4j.Logger;
@@ -45,16 +47,58 @@ public class SimulationWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        AgentTickDTO tick;
+        JsonNode root;
         try {
-            tick = objectMapper.readValue(message.getPayload(), AgentTickDTO.class);
+            root = objectMapper.readTree(message.getPayload());
         } catch (Exception e) {
             sendError(session, "Geçersiz JSON: " + e.getMessage());
             return;
         }
 
+        String messageType = root.path("type").asText();
+        if ("position_update".equalsIgnoreCase(messageType)) {
+            handlePositionUpdate(session, root);
+            return;
+        }
+
+        AgentTickDTO tick;
+        try {
+            tick = objectMapper.treeToValue(root, AgentTickDTO.class);
+        } catch (Exception e) {
+            sendError(session, "Geçersiz AgentTickDTO: " + e.getMessage());
+            return;
+        }
+
         SimulationResponseDTO response = simulationService.processTick(tick);
         session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
+    }
+
+    private void handlePositionUpdate(WebSocketSession session, JsonNode root) throws Exception {
+        String mapName = root.path("map_name").asText(null);
+        if (mapName == null || mapName.isBlank()) {
+            sendError(session, "map_name alanı zorunludur");
+            return;
+        }
+
+        PositionDTO position;
+        try {
+            position = objectMapper.treeToValue(root.path("agent_pos"), PositionDTO.class);
+        } catch (Exception e) {
+            sendError(session, "Geçersiz agent_pos: " + e.getMessage());
+            return;
+        }
+
+        if (position == null) {
+            sendError(session, "agent_pos alanı zorunludur");
+            return;
+        }
+
+        simulationService.saveAgentPosition(mapName, position);
+        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(Map.of(
+                "status", "position_saved",
+                "map_name", mapName,
+                "agent_pos", position
+        ))));
     }
 
     @Override

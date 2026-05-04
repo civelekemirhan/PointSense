@@ -32,6 +32,10 @@ public class SimulationService {
     }
 
     public SimulationResponseDTO processTick(AgentTickDTO tick) {
+        if (tick.mapName() != null && tick.agentPos() != null) {
+            saveAgentPosition(tick.mapName(), tick.agentPos());
+        }
+
         GameMapDTO map = resolveMap(tick);
         float[] normalizedInput = normalizer.normalize(tick, map);
         ModelInferenceService.InferenceResult result = modelInference.infer(normalizedInput);
@@ -44,6 +48,10 @@ public class SimulationService {
                 normalizedInput,
                 nextObstacles
         );
+    }
+
+    public void saveAgentPosition(String mapName, PositionDTO position) {
+        mapService.updateStartPosition(mapName, position);
     }
 
     private GameMapDTO resolveMap(AgentTickDTO tick) {
